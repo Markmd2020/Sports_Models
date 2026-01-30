@@ -106,7 +106,7 @@ ggplot(yankee_beta, aes(x, density, color = playerID)) +
   stat_function(fun = function(x) dbeta(x, alpha0, beta0),
                 lty = 2, color = "black") +
   labs(x = "Batting average",
-       color = "Player") 
+       color = "Player")  
 
 yankee_1998_career <- yankee_1998_career %>%
   mutate(low = qbeta(.025, alpha1, beta1),
@@ -119,4 +119,4 @@ yankee_1998_career %>%
   geom_errorbarh(aes(xmin = low, xmax = high)) +
   geom_vline(xintercept = alpha0 / (alpha0 + beta0), color = "red", lty = 2) +
   xlab("Estimated batting average (w/ 95% interval)") +
-  ylab("Player")
+  ylab("Player") 
