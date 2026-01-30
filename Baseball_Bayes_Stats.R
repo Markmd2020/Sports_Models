@@ -106,7 +106,7 @@ ggplot(yankee_beta, aes(x, density, color = playerID)) +
   stat_function(fun = function(x) dbeta(x, alpha0, beta0),
                 lty = 2, color = "black") +
   labs(x = "Batting average",
-       color = "Player")
+       color = "Player") 
 
 yankee_1998_career <- yankee_1998_career %>%
   mutate(low = qbeta(.025, alpha1, beta1),
