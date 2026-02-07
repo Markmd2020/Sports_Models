@@ -691,7 +691,7 @@ sim_replication_intervals <- sim_replication_models %>%
   unnest(pmap(list(prior, data, cred_level = cred_level), augment)) %>%
   select(replication, cred_level, p, .low, .high)
 
-#Simualting varying observations
+#Simulating varying observations
 varying_size_sim <- career %>%
   select(-H) %>%
   crossing(size = c(30, 100, 300, 1000, 3000, 10000),
