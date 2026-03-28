@@ -393,3 +393,63 @@ lambda_hat <- predict(fit_pois, newdata = test_g, type = "response")
 test_g2 <- test_g %>% mutate(lambda_team = lambda_hat)
 summary(test_g2$lambda_team)
 
+# Companion opponent lambda (toy)
+fit_pois_opp <- glm(
+  goals_opp ~ home + p_true,
+  data = train_g,
+  family = poisson()
+)
+
+test_g2 <- test_g2 %>%
+  mutate(lambda_opp = predict(fit_pois_opp, newdata = test_g2, type = "response"),
+         lambda_total = lambda_team + lambda_opp)
+
+# Price Over 2.5
+p_over_25 <- 1 - ppois(2, lambda = test_g2$lambda_total)
+summary(p_over_25)
+
+# Example: bet Over 2.5 at decimal odds 1.95
+d_over <- 1.95
+ev_over <- ev_decimal(p_over_25, d_over)
+summary(ev_over)
+mean(ev_over > 0)
+
+#Probability Calibration
+#Bier Score and Logloss
+brier_score <- function(y, p) mean((y - p)^2)
+
+log_loss <- function(y, p, eps = 1e-12) {
+  p <- pmin(pmax(p, eps), 1 - eps)
+  -mean(y*log(p) + (1-y)*log(1-p))
+}
+
+brier <- brier_score(test_pred$result, test_pred$p_model)
+ll <- log_loss(test_pred$result, test_pred$p_model)
+c(brier = brier, logloss = ll)
+
+reliability_curve <- function(y, p, bins = 10) {
+  tibble(y = y, p = p) %>%
+    mutate(bin = ntile(p, bins)) %>%
+    group_by(bin) %>%
+    summarise(
+      p_mean = mean(p),
+      y_mean = mean(y),
+      n = n(),
+      .groups = "drop"
+    )
+}
+
+rc <- reliability_curve(test_pred$result, test_pred$p_model, bins = 12)
+
+ggplot(rc, aes(p_mean, y_mean, size = n)) +
+  geom_point(alpha = 0.8) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Reliability Curve (Calibration)",
+    x = "Predicted probability (bin mean)",
+    y = "Observed frequency",
+    size = "Count"
+  )
+
